@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INFRAINV · Sistema de Inventario Gastronómico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="login-view">
+  <div class="login-shell">
+    <aside class="login-brand">
+      <div class="login-brand-inner">
+        <div class="brand-mark">🍽️</div>
+        <h1>INFRAINV</h1>
+        <p>Sistema Inteligente de Inventario Gastronómico</p>
+        <ul class="brand-features">
+          <li><span>✓</span> Control de platillos y utensilios</li>
+          <li><span>✓</span> Alertas de stock y caducidad</li>
+          <li><span>✓</span> Pedidos programados con calendario</li>
+          <li><span>✓</span> Reportes, gráficos y exportación PDF</li>
+        </ul>
+      </div>
+      <div class="login-brand-footer">© 2026 INFRAINV · Módulo 3.8</div>
+    </aside>
+    <main class="login-form-wrap">
+      <form class="login-card" onsubmit="event.preventDefault(); login();">
+        <h2>Iniciar sesión</h2>
+        <p class="login-sub">Accede a tu panel de control</p>
+        <label for="login-correo">Correo electrónico</label>
+        <div class="input-group">
+          <span class="input-icon">✉️</span>
+          <input id="login-correo" type="email" placeholder="admin@infrainv.com" autocomplete="username" />
+        </div>
+        <label for="login-pass">Contraseña</label>
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Iniciar sesión →</button>
+      </form>
+    </main>
+  </div>
+</div>
+
+<div id="app-view" style="display: none;">
+  <header class="topbar">
+    <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="brand">
+      <span class="brand-icon">🍽️</span>
+      <div class="brand-text">
+        <h2>INFRAINV</h2>
+        <small>Inventario Gastronómico</small>
+      </div>
+    </div>
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="global-search" placeholder="Buscar…" oninput="handleSearch(this.value)" />
+      <kbd>Ctrl K</kbd>
+    </div>
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">A</div>
+      <div class="user-meta">
+        <span class="name" id="topbar-user">Usuario</span>
+        <span class="role-badge" id="topbar-role">Rol</span>
+      </div>
+      <button class="icon-btn" onclick="requestNotificationPermission()" id="notif-btn" title="Activar notificaciones">🔔</button>
+      <button class="icon-btn" onclick="toggleDarkMode()" id="dark-toggle" title="Modo oscuro">🌙</button>
+      <button class="icon-btn" onclick="logout()" title="Salir">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <span class="sidebar-label">Principal</span>
+        <button class="active" data-page="dashboard" onclick="navigate('dashboard', this)"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+        <button data-page="alertas" onclick="navigate('alertas', this)"><span class="nav-icon">🔔</span><span>Alertas</span><span class="nav-badge" id="nav-alert-count" style="display:none;">0</span></button>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-label">Inventario</span>
+        <button data-page="alimentos" onclick="navigate('alimentos', this)"><span class="nav-icon">🍽️</span><span>Platillos</span></button>
+        <button data-page="utensilios" onclick="navigate('utensilios', this)"><span class="nav-icon">🔪</span><span>Utensilios</span></button>
+        <button data-page="prestamos" onclick="navigate('prestamos', this)"><span class="nav-icon">📤</span><span>Préstamos</span></button>
+        <button data-page="pedidos" onclick="navigate('pedidos', this)"><span class="nav-icon">📅</span><span>Pedidos</span></button>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-label">Administración</span>
+        <button data-page="reportes" onclick="navigate('reportes', this)"><span class="nav-icon">📈</span><span>Reportes</span></button>
+        <button data-page="usuarios" onclick="navigate('usuarios', this)"><span class="nav-icon">👥</span><span>Usuarios</span></button>
+        <button data-page="config" onclick="navigate('config', this)"><span class="nav-icon">⚙️</span><span>Configuración</span></button>
+      </div>
+    </nav>
+
+    <main class="content">
+      <section id="page-dashboard" class="page active">
+        <div class="page-header">
+          <div><h3>Panel Principal</h3><p class="page-subtitle">Resumen general del restaurante</p></div>
+          <span class="date-label" id="dashboard-date"></span>
+        </div>
+        <div class="stats">
+          <div class="stat-card info"><div class="stat-icon">🍽️</div><div><div class="label">Platillos</div><div class="value" id="stat-alimentos">0</div></div></div>
+          <div class="stat-card warning"><div class="stat-icon">⚠️</div><div><div class="label">Stock bajo</div><div class="value" id="stat-bajo">0</div></div></div>
+          <div class="stat-card danger"><div class="stat-icon">⏰</div><div><div class="label">Próximos a caducar</div><div class="value" id="stat-caducar">0</div></div></div>
+          <div class="stat-card success"><div class="stat-icon">🔪</div><div><div class="label">Utensilios disponibles</div><div class="value" id="stat-utensilios">0</div></div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h4>📊 Platillos por categoría</h4></div>
+            <div class="chart-wrap"><canvas id="chart-categorias"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h4>📈 Stock actual vs mínimo</h4></div>
+            <div class="chart-wrap"><canvas id="chart-stock"></canvas></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card"><div class="card-header"><h4>🔔 Alertas activas</h4><span class="chip" id="dash-alert-chip">0</span></div><div id="dashboard-alerts"></div></div>
+          <div class="card"><div class="card-header"><h4>📤 Préstamos activos</h4><span class="chip" id="dash-loan-chip">0</span></div><div id="dashboard-loans"></div></div>
+        </div>
+      </section>
+
+      <section id="page-alimentos" class="page">
+        <div class="page-header">
+          <div><h3>Catálogo de Platillos</h3><p class="page-subtitle">Platillos disponibles en el menú</p></div>
+          <div class="actions">
+            <button class="btn btn-secondary" onclick="openModal('modal-food')">➕ Nuevo platillo</button>
+            <button class="btn btn-success" onclick="openModal('modal-entry')">📥 Entrada</button>
+            <button class="btn btn-danger" onclick="openModal('modal-exit')">📤 Salida</button>
+          </div>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Platillo</th><th>Categoría</th><th>Cantidad</th><th>Unidad</th><th>F. Entrada</th><th>F. Caducidad</th><th>Stock mín.</th><th>Estado</th><th class="text-right">Acciones</th></tr></thead>
+          <tbody id="tabla-alimentos"></tbody>
+        </table></div></div>
+      </section>
+
+      <section id="page-utensilios" class="page">
+        <div class="page-header">
+          <div><h3>Inventario de Utensilios</h3><p class="page-subtitle">Herramientas y equipos</p></div>
+          <button class="btn btn-primary" onclick="openModal('modal-utensil')">➕ Nuevo utensilio</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Nombre</th><th>Código</th><th>Ubicación</th><th>Estado</th><th class="text-right">Acciones</th></tr></thead>
+          <tbody id="tabla-utensilios"></tbody>
+        </table></div></div>
+      </section>
+
+      <section id="page-prestamos" class="page">
+        <div class="page-header"><div><h3>Préstamos de Utensilios</h3><p class="page-subtitle">Control de salidas y devoluciones</p></div>
+          <button class="btn btn-primary" onclick="openModal('modal-loan')">➕ Nuevo préstamo</button></div>
+        <div class="card">
+          <div class="card-header"><h4>Préstamos activos</h4><span class="chip" id="loan-active-chip">0</span></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Utensilio</th><th>Usuario</th><th>Fecha préstamo</th><th>Estado</th><th class="text-right">Acciones</th></tr></thead>
+            <tbody id="tabla-prestamos"></tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Historial de devoluciones</h4></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Utensilio</th><th>Usuario</th><th>Préstamo</th><th>Devolución</th><th>Estado</th></tr></thead>
+            <tbody id="tabla-historial"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <section id="page-pedidos" class="page">
+        <div class="page-header">
+          <div><h3>Calendario de Pedidos</h3><p class="page-subtitle">Programa platillos para hoy o días futuros</p></div>
+          <button class="btn btn-primary" onclick="openOrderModal(toLocalDateString(new Date()))">➕ Pedido para hoy</button>
+        </div>
+        <div class="orders-layout">
+          <div class="card calendar-card">
+            <div class="calendar-header">
+              <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)" id="cal-prev">‹</button>
+              <h4 id="calendar-month-label">—</h4>
+              <button class="btn btn-secondary btn-sm" onclick="changeMonth(1)">›</button>
+              <button class="btn btn-secondary btn-sm" onclick="goToToday()">Hoy</button>
+            </div>
+            <div class="calendar-weekdays">
+              <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+            <div class="calendar-legend">
+              <span><i class="dot today-dot"></i> Hoy</span>
+              <span><i class="dot has-dot"></i> Con pedidos</span>
+              <span><i class="dot past-dot"></i> No disponible</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h4>📋 Pedidos programados</h4><span class="chip" id="orders-count-chip">0</span></div>
+            <div id="orders-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-alertas" class="page">
+        <div class="page-header">
+          <div><h3>Centro de Alertas</h3><p class="page-subtitle">Notificaciones automáticas</p></div>
+          <button class="btn btn-secondary" onclick="markAllAlertsRead()">✔️ Marcar todas como leídas</button>
+        </div>
+        <div class="card"><div id="lista-alertas"></div></div>
+      </section>
+
+      <section id="page-reportes" class="page">
+        <div class="page-header">
+          <div><h3>Reportes y Análisis</h3><p class="page-subtitle">Indicadores del restaurante</p></div>
+          <div class="actions">
+            <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
+            <button class="btn btn-primary" onclick="exportarReportePDF()">📄 Exportar PDF</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat-card info"><div class="stat-icon">🍽️</div><div><div class="label">Total platillos</div><div class="value" id="rep-total-alim">0</div></div></div>
+          <div class="stat-card warning"><div class="stat-icon">🔔</div><div><div class="label">Alertas activas</div><div class="value" id="rep-alertas">0</div></div></div>
+          <div class="stat-card success"><div class="stat-icon">🔪</div><div><div class="label">Utensilios</div><div class="value" id="rep-total-ut">0</div></div></div>
+          <div class="stat-card danger"><div class="stat-icon">📤</div><div><div class="label">En préstamo</div><div class="value" id="rep-prestados">0</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Resumen por categoría</h4></div>
+          <div class="table-wrap"><table><thead><tr><th>Categoría</th><th>Cantidad</th></tr></thead><tbody id="rep-categorias"></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Historial de reportes</h4><button class="btn btn-primary btn-sm" onclick="generateReport()">📊 Generar</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Fecha</th><th>Contenido</th></tr></thead><tbody id="rep-historial"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="page-usuarios" class="page">
+        <div class="page-header">
+          <div><h3>Gestión de Usuarios</h3><p class="page-subtitle">Cuentas y roles</p></div>
+          <button class="btn btn-primary" onclick="openModal('modal-user')">➕ Nuevo usuario</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th class="text-right">Acciones</th></tr></thead>
+          <tbody id="tabla-usuarios"></tbody>
+        </table></div></div>
+      </section>
+
+      <section id="page-config" class="page">
+        <div class="page-header"><div><h3>Configuración</h3><p class="page-subtitle">Umbrales y datos</p></div></div>
+        <div class="card">
+          <div class="card-header"><h4>⚙️ Umbrales de alerta</h4></div>
+          <label class="config-label" for="config-dias">Días de anticipación para caducidad</label>
+          <input id="config-dias" type="number" value="3" min="1" class="config-input" />
+          <div class="card-actions"><button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button></div>
+        </div>
+        <div class="card card-danger">
+          <div class="card-header"><h4>🗑️ Reiniciar datos</h4></div>
+          <p class="config-text">Elimina todos los registros y restaura los datos de ejemplo.</p>
+          <button class="btn btn-danger" onclick="resetData()">Reiniciar sistema</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="modal-food" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>🍽️ Nuevo Platillo</h3><button class="modal-close" onclick="closeModal('modal-food')">×</button></div>
+    <div class="modal-body">
+      <label>Nombre del platillo</label><input id="food-nombre" placeholder="Ej: Pizza Margarita" />
+      <label>Categoría</label><input id="food-categoria" placeholder="Ej: Platos fuertes" />
+      <div class="form-row">
+        <div><label>Cantidad</label><input id="food-cantidad" type="number" value="0" min="0" step="1" /></div>
+        <div><label>Unidad</label><input id="food-unidad" placeholder="porciones" /></div>
+      </div>
+      <div class="form-row">
+        <div><label>Fecha de entrada</label><input id="food-entrada" type="date" /></div>
+        <div><label>Fecha de caducidad</label><input id="food-caducidad" type="date" /></div>
+      </div>
+      <label>Stock mínimo</label><input id="food-stockmin" type="number" value="5" min="0" step="1" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-food')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addFood()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-entry" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>📥 Registrar Entrada</h3><button class="modal-close" onclick="closeModal('modal-entry')">×</button></div>
+    <div class="modal-body">
+      <label>Platillo</label><select id="entry-food"></select>
+      <label>Cantidad</label><input id="entry-qty" type="number" value="1" min="1" step="1" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-entry')">Cancelar</button>
+      <button class="btn btn-success" onclick="addEntry()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-exit" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>📤 Registrar Salida</h3><button class="modal-close" onclick="closeModal('modal-exit')">×</button></div>
+    <div class="modal-body">
+      <label>Platillo</label><select id="exit-food"></select>
+      <label>Cantidad</label><input id="exit-qty" type="number" value="1" min="1" step="1" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-exit')">Cancelar</button>
+      <button class="btn btn-danger" onclick="addExit()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-utensil" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>🔪 Nuevo Utensilio</h3><button class="modal-close" onclick="closeModal('modal-utensil')">×</button></div>
+    <div class="modal-body">
+      <label>Nombre</label><input id="ut-nombre" placeholder="Ej: Cuchillo chef" />
+      <label>Código</label><input id="ut-codigo" placeholder="UT-001" />
+      <label>Estado</label><select id="ut-estado"><option>Disponible</option><option>Prestado</option><option>Extraviado</option></select>
+      <label>Ubicación</label><input id="ut-ubicacion" placeholder="Cocina caliente" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-utensil')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addUtensil()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loan" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>📤 Prestar Utensilio</h3><button class="modal-close" onclick="closeModal('modal-loan')">×</button></div>
+    <div class="modal-body">
+      <label>Utensilio</label><select id="loan-ut"></select>
+      <label>Usuario</label><select id="loan-user"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-loan')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addLoan()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-order" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>📅 Nuevo Pedido</h3><button class="modal-close" onclick="closeModal('modal-order')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="order-date" />
+      <div class="order-date-display"><span class="order-date-icon">📅</span><span id="order-date-label">—</span></div>
+      <label>Platillo</label><select id="order-food"></select>
+      <label>Cantidad</label><input id="order-qty" type="number" min="1" step="1" value="1" />
+      <label>Notas</label><textarea id="order-notes" rows="3" placeholder="Opcional"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-order')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addOrder()">Programar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-user" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h3>👤 Nuevo Usuario</h3><button class="modal-close" onclick="closeModal('modal-user')">×</button></div>
+    <div class="modal-body">
+      <label>Nombre</label><input id="user-nombre" placeholder="Juan Pérez" />
+      <label>Correo</label><input id="user-correo" type="email" />
+      <label>Contraseña</label><input id="user-pass" type="password" />
+      <label>Rol</label><select id="user-rol"><option>Administrador</option><option>Chef</option><option>Inventario</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirm-overlay" class="modal-overlay">
+  <div class="modal modal-confirm">
+    <div class="confirm-icon" id="confirm-icon">⚠️</div>
+    <h3 id="confirm-title">Confirmar acción</h3>
+    <p id="confirm-message">¿Está seguro?</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="confirm-cancel">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-ok">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
